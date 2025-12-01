@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>港式求生欲大作戰：讀懂她的心</title>
+    <style>
+        :root {
+            --primary-color: #ff6b81;
+            --secondary-color: #ff9eb5;
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+            --text-color: #333;
+            --chat-bg-her: #fff;
+            --chat-bg-me: #dcf8c6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: var(--glass-border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            z-index: 10;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Screens */
+        .screen {
+            flex: 1;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Start Screen */
+        #start-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-img {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 129, 0.4);
+        }
+
+        /* Game Screen */
+        .chat-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.her {
+            align-self: flex-start;
+            background: var(--chat-bg-her);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message.her::before {
+            content: '👧🏻 BB';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .message.me {
+            align-self: flex-end;
+            background: var(--chat-bg-me);
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .scene-desc {
+            background: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 15px;
+            text-align: center;
+            border: 1px dashed #ccc;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: white;
+            color: #333;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: left;
+            margin: 0;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-color);
+            background: #fff0f3;
+            transform: none;
+        }
+
+        /* Feedback Modal/Overlay */
+        .feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .feedback-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 300px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .score-change {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .score-plus { color: #4caf50; }
+        .score-minus { color: #f44336; }
+
+        /* Result Screen */
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #333;
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header">
+        <h1>💖 港式求生欲測試</h1>
+        <div class="status-bar">
+            <span id="progress-text">Level 1/10</span>
+            <span>❤️ 好感度: <b id="score-display">50</b></span>
+        </div>
+    </div>
+
+    <div id="start-screen" class="screen active">
+        <div class="hero-img">🤯</div>
+        <h2>你讀得懂「港女」嗎？</h2>
+        <p>香港女生說「沒事」就是真的沒事嗎？<br>說「隨便」真的可以隨便嗎？</p>
+        <p style="font-size: 0.9rem; color: #666; margin-top: 20px;">
+            ⚠️ 警告：本遊戲包含大量陷阱題。<br>
+            滿分100，低於50分將被永久拉黑。
+        </p>
+        <button onclick="game.start()">開始挑戰</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="scene-desc" id="scene-text">場景加載中...</div>
+        <div class="chat-box" id="chat-history">
+            </div>
+        <div class="options-grid" id="options-area">
+            </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <div class="result-card">
+            <div class="hero-img" id="result-emoji">🏆</div>
+            <div class="rank-badge" id="result-title">稱號計算中</div>
+            <div class="final-score" id="final-score-display">0</div>
+            <p id="result-comment">評語加載中...</p>
+        </div>
+        <button onclick="game.restart()">重新追求</button>
+    </div>
+
+    <div class="feedback-overlay" id="feedback-overlay">
+        <div class="feedback-card">
+            <div style="font-size: 3rem;" id="fb-emoji">🤔</div>
+            <h3 id="fb-title">結果</h3>
+            <div class="score-change" id="fb-score"></div>
+            <p id="fb-text" style="font-size: 0.9rem; color: #555;"></p>
+            <button onclick="game.nextQuestion()" style="padding: 10px 20px;">繼續</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 遊戲數據庫 (Scenario Database)
+    const scenarios = [
+        {
+            scene: "週末晚餐時間，你想訂餐廳。",
+            girl: "BB，今晚食咩啊？",
+            options: [
+                { text: "你想食咩？我都無所謂。", score: -10, feedback: "大忌！將個波拋返比佢，顯得你好無主見。", emoji: "🙄" },
+                { text: "去食麥當勞啦，最近有新包。", score: -20, feedback: "想死？週末紀念日你帶佢食老麥？", emoji: "😡" },
+                { text: "我Book咗尖沙咀個間海景西餐，之後再去海旁行下。", score: 20, feedback: "Perfect！有計劃、有景、有氣氛。", emoji: "🥰" },
+                { text: "不如食譚仔？", score: -5, feedback: "雖然佢可能鍾意，但今晚係約會啊大佬。", emoji: "😐" }
+            ]
+        },
+        {
+            scene: "佢傳咗一張自拍比你，背景係維港。",
+            girl: "[發送了一張自拍圖片]",
+            options: [
+                { text: "哇，後面個夜景好靚喔！", score: -15, feedback: "你讚個景？即係人唔靚啦？", emoji: "😒" },
+                { text: "已Save，做Wallpaper。", score: 10, feedback: "雖然狗腿，但女仔受落。", emoji: "😊" },
+                { text: "BB你瘦咗喎，條裙好襯你，勁仙氣！", score: 20, feedback: "滿分答案！讚人為主，細節為輔。", emoji: "😍" },
+                { text: "幾點影架？咁黑嘅。", score: -30, feedback: "直男癌末期，無得救。", emoji: "💀" }
+            ]
+        },
+        {
+            scene: "行街行咗成日，佢突然停低。",
+            girl: "唉，隻腳好痛呀... 對高踭鞋刮腳。",
+            options: [
+                { text: "都叫咗你著波鞋架啦，係要貪靚。", score: -50, feedback: "講道理？你想變單身狗？", emoji: "🤬" },
+                { text: "咁我地搵個地方坐下休息陣。", score: 5, feedback: "不過不失，但未夠細心。", emoji: "🙂" },
+                { text: "多飲熱水。", score: -100, feedback: "再見。", emoji: "👋" },
+                { text: "(即刻去便利店買膠布) 不如換我對拖鞋？或者我揹你？", score: 20, feedback: "行動派暖男，加分！", emoji: "💖" }
+            ]
+        },
+        {
+            scene: "佢係公司受咗氣，打比你訴苦。",
+            girl: "我覺得個Manager勁針對我囉，明明係Helen做錯...",
+            options: [
+                { text: "其實個Manager可能只係想就事論事...", score: -20, feedback: "唔好分析！佢要嘅係發洩！", emoji: "😤" },
+                { text: "Helen真係好過份，點可以咁架！今晚帶你去食好野補數。", score: 20, feedback: "同仇敵愾 + 美食安撫 = 正解。", emoji: "🥳" },
+                { text: "唔好唔開心啦，小事黎姐。", score: -5, feedback: "對佢黎講唔係小事！", emoji: "😕" },
+                { text: "咁你下次小心啲囉。", score: -15, feedback: "你竟然幫理不幫親？", emoji: "😠" }
+            ]
+        },
+        {
+            scene: "情人節前夕，佢同你講。",
+            girl: "BB呀，今年情人節唔好送花啦，又貴又唔實用，曬錢。",
+            options: [
+                { text: "好呀，咁慳返啲錢買高達。", score: -40, feedback: "你就真係唔買？佢口是心非架！", emoji: "🔪" },
+                { text: "收到，咁我地食餐飯算。", score: -10, feedback: "太聽話有時都係錯。", emoji: "😔" },
+                { text: "傻豬，儀式感要有嘅。我訂咗細細束你鍾意嘅繡球花。", score: 20, feedback: "識做！聽佢講慳錢，但又要比驚喜。", emoji: "😘" },
+                { text: "咁折現比你？", score: 5, feedback: "實際係實際，但好似怪怪地。", emoji: "🤔" }
+            ]
+        },
+        {
+            scene: "你打機打到最緊張嘅團戰時刻，佢打黎。",
+            girl: "喂？做緊咩呀？",
+            options: [
+                { text: "(Cut線)", score: -200, feedback: "勇士，來生再見。", emoji: "⚰️" },
+                { text: "打緊機呀，陣間覆你！(急住收線)", score: -10, feedback: "雖然誠實，但佢會覺得機重要過佢。", emoji: "😟" },
+                { text: "無呀，諗緊你囉。(一邊單手操作)", score: 15, feedback: "高風險高回報，如果你操作到嘅話。", emoji: "😎" },
+                { text: "接電話：BB等等呀，我處理緊啲急事，5分鐘後即刻打比你！", score: 10, feedback: "緩兵之計，最好真係5分鐘。", emoji: "👌" }
+            ]
+        },
+        {
+            scene: "佢試緊衫，問你意見。",
+            girl: "呢件衫會唔會顯得我好肥？",
+            options: [
+                { text: "少少啦，可能黑色個件好啲。", score: -30, feedback: "誠實豆沙包食多咗？", emoji: "🤐" },
+                { text: "唔會呀，你本身都唔肥。", score: 5, feedback: "標準答案，但有啲敷衍。", emoji: "😐" },
+                { text: "邊度肥？我覺得顯得你好有線條，個腰位好靚。", score: 20, feedback: "具體讚賞，避重就輕。", emoji: "✨" },
+                { text: "肥肥地幾可愛呀。", score: -50, feedback: "女仔最怕聽到個肥字！", emoji: "🐷" }
+            ]
+        },
+        {
+            scene: "經過珠寶店，佢望住個櫥窗。",
+            girl: "哇，條頸鏈好靚呀...",
+            options: [
+                { text: "行啦，趕時間呀。", score: -20, feedback: "完全無視佢嘅需求。", emoji: "🚶" },
+                { text: "幾千蚊買舊石，唔抵。", score: -15, feedback: "破壞氣氛高手。", emoji: "🙅‍♂️" },
+                { text: "記低個款，下次紀念日送比佢。", score: 20, feedback: "雖然現在無野發生，但你贏在未來。", emoji: "📝" },
+                { text: "靚係靚，不過我覺得你戴上次我送個條再襯啲。", score: 15, feedback: "讚美同時省錢，高手。", emoji: "😏" }
+            ]
+        },
+        {
+            scene: "佢剪咗頭髮（只係修短咗1cm），見到你。",
+            girl: "你覺唔覺得我有咩唔同咗？",
+            options: [
+                { text: "無喎，一樣咁靚。", score: -5, feedback: "求生欲強，但觀察力弱。", emoji: "😑" },
+                { text: "換咗香水？", score: -10, feedback: "亂估會死得好慘。", emoji: "🤥" },
+                { text: "係咪剪咗頭髮？清爽咗好多，好襯你臉型！", score: 20, feedback: "觀察入微，滿分男友！", emoji: "💯" },
+                { text: "肥咗？", score: -100, feedback: "自殺式發言。", emoji: "☠️" }
+            ]
+        },
+        {
+            scene: "最後一題：前度話題。",
+            girl: "其實你覺得你個Ex靚啲定我靚啲？",
+            options: [
+                { text: "各有各靚啦。", score: -40, feedback: "最蠢嘅答案，想兩邊討好。", emoji: "👎" },
+                { text: "緊係你靚啦！", score: 10, feedback: "標準答案。", emoji: "🆗" },
+                { text: "邊個Ex？我唔記得了。我眼中淨係見到你。", score: 20, feedback: "滿分！完全抹殺過去，只專注現在。", emoji: "🧠" },
+                { text: "佢雖然靚，但性格差過你。", score: -20, feedback: "唔好提佢靚！", emoji: "🚫" }
+            ]
+        }
+    ];
+
+    const Game = {
+        score: 50,
+        currentLevel: 0,
+        
+        start: function() {
+            this.score = 50;
+            this.currentLevel = 0;
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            this.updateScoreUI();
+            this.loadQuestion();
+        },
+
+        loadQuestion: function() {
+            if (this.currentLevel >= scenarios.length) {
+                this.showResult();
+                return;
+            }
+
+            const data = scenarios[this.currentLevel];
+            
+            // Update UI
+            document.getElementById('progress-text').innerText = `Level ${this.currentLevel + 1}/${scenarios.length}`;
+            document.getElementById('scene-text').innerText = `📍 場景：${data.scene}`;
+            
+            // Render Chat
+            const chatBox = document.getElementById('chat-history');
+            chatBox.innerHTML = `
+                <div class="message her">${data.girl}</div>
+            `;
+
+            // Render Options
+            const optionsArea = document.getElementById('options-area');
+            optionsArea.innerHTML = '';
+            
+            // Shuffle options slightly for randomness (optional)
+            const shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = () => this.checkAnswer(opt);
+                optionsArea.appendChild(btn);
+            });
+        },
+
+        checkAnswer: function(option) {
+            // Update internal score
+            this.score += option.score;
+            if (this.score > 100) this.score = 100;
+            if (this.score < 0) this.score = 0;
+
+            // Show Feedback Overlay
+            const overlay = document.getElementById('feedback-overlay');
+            const fbEmoji = document.getElementById('fb-emoji');
+            const fbTitle = document.getElementById('fb-title');
+            const fbScore = document.getElementById('fb-score');
+            const fbText = document.getElementById('fb-text');
+
+            fbEmoji.innerText = option.emoji;
+            fbText.innerText = option.feedback;
+
+            if (option.score > 0) {
+                fbTitle.innerText = "做得好！";
+                fbScore.innerText = "+" + option.score;
+                fbScore.className = "score-change score-plus";
+                fbTitle.style.color = "#4caf50";
+            } else {
+                fbTitle.innerText = "出事啦！";
+                fbScore.innerText = option.score;
+                fbScore.className = "score-change score-minus";
+                fbTitle.style.color = "#f44336";
+            }
+
+            overlay.style.display = 'flex';
+        },
+
+        nextQuestion: function() {
+            document.getElementById('feedback-overlay').style.display = 'none';
+            this.currentLevel++;
+            this.updateScoreUI();
+            this.loadQuestion();
+        },
+
+        updateScoreUI: function() {
+            document.getElementById('score-display').innerText = this.score;
+        },
+
+        showResult: function() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.add('active');
+            
+            const scoreDisplay = document.getElementById('final-score-display');
+            const resultTitle = document.getElementById('result-title');
+            const resultComment = document.getElementById('result-comment');
+            const resultEmoji = document.getElementById('result-emoji');
+
+            scoreDisplay.innerText = this.score;
+
+            if (this.score >= 90) {
+                resultTitle.innerText = "情場鬼見愁";
+                resultComment.innerText = "大師！請受小弟一拜！你對港女心理嘅掌握已經出神入化，無女仔逃得出你手掌心！";
+                resultEmoji.innerText = "👑";
+            } else if (this.score >= 70) {
+                resultTitle.innerText = "資深暖男";
+                resultComment.innerText = "唔錯唔錯，大部分時間都求生成功。繼續保持細心，好快可以修成正果。";
+                resultEmoji.innerText = "💖";
+            } else if (this.score >= 50) {
+                resultTitle.innerText = "普通朋友 (Friend Zone)";
+                resultComment.innerText = "你係個好人，但未夠細心。經常踩雷，小心比人派好人卡啊。";
+                resultEmoji.innerText = "🃏";
+            } else {
+                resultTitle.innerText = "鋼鐵直男癌";
+                resultComment.innerText = "憑實力單身！你嘅回應簡直係災難級。建議重修說話技巧，否則注定孤獨終老。";
+                resultEmoji.innerText = "🚑";
+            }
+        },
+
+        restart: function() {
+            this.start();
+        }
+    };
+
+    const game = Object.create(Game);
+</script>
+
+</body>
+</html>
